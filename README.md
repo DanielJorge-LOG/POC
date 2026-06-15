@@ -252,25 +252,21 @@ These checks help improve algorithm robustness in optically complex waters and f
 
 ## References
 
-### Le et al. (2016)
+### Le et al. (2017)
 
-Le, C., Li, Y., Zha, Y., Sun, D., Huang, C., Lu, H., and Yin, B. (2016).  
-*A four-band semi-analytical model for estimating particulate organic carbon in inland waters from remote sensing data.*
+Tran, Trung Kien, et al. "Deriving particulate organic carbon in coastal waters from remote sensing: Inter-comparison exercise and development of a maximum band-ratio approach." Remote Sensing 11.23 (2019): 2849.
 
 ### Tran et al. (2019)
 
-Tran, K. T., et al. (2019).  
-*Remote sensing of particulate organic carbon in coastal and inland waters using red-to-blue reflectance relationships.*
+Tran, Trung Kien, et al. "Deriving particulate organic carbon in coastal waters from remote sensing: Inter-comparison exercise and development of a maximum band-ratio approach." Remote Sensing 11.23 (2019): 2849.
 
 ### Loisel et al. (2007)
 
-Loisel, H., Mériaux, X., Berthon, J.-F., and Poteau, A. (2007).  
-*Investigation of the optical backscattering-to-particle concentration relationship in coastal waters.*
+Loisel, Hubert, et al. "Investigation of the optical backscattering to scattering ratio of marine particles in relation to their biogeochemical composition in the eastern English Channel and southern North Sea." Limnology and Oceanography 52.2 (2007): 739-752.
 
 ### Vantrepotte et al. (2012)
 
-Vantrepotte, V., Loisel, H., Dessailly, D., and Mériaux, X. (2012).  
-*Optical classification of contrasted coastal waters.*
+Vantrepotte, Vincent, et al. "Optical classification of contrasted coastal waters." Remote Sensing of Environment 123 (2012): 306-323.
 
 ---
 
