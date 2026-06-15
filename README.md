@@ -1,62 +1,50 @@
-# POC Algorithm
+# POC Retrieval Algorithm
 
-This repository contains a MATLAB implementation of a Particulate Organic Carbon (POC) retrieval algorithm based on a combination of:
+MATLAB implementation of a Particulate Organic Carbon (POC) retrieval algorithm based on the combination of three published approaches:
 
-- Le et al. (2016)
-- Kien et al.
-- Loisel (Hubert formulation)
-- EUMETSAT Optical Water Type (OWT) classification
+- **Le et al. (2016)**
+- **Tran et al. (2019)**
+- **Loisel et al. (2007)**
 
-The algorithm supports both **Sentinel-3 OLCI** and **MODIS-Aqua** observations and combines multiple POC estimates using OWT class probabilities.
+The algorithm uses the **EUMETSAT Optical Water Type (OWT)** classification scheme (Vantrepotte et al., 2012) to dynamically combine the different POC estimates according to the optical properties of the water.
 
----
+Supported sensors:
 
-## Overview
-
-The workflow consists of:
-
-1. Optical Water Type classification using the EUMETSAT 17-class scheme.
-2. Computation of POC using:
-   - Le et al. algorithm
-   - Kien et al. algorithm
-   - Loisel/Hubert algorithm
-3. Probability-weighted blending of the three estimates.
-4. Quality-control checks and reclassification of suspicious spectra.
+- Sentinel-3 OLCI
+- MODIS-Aqua
 
 ---
 
-## Requirements
+## Method Overview
 
-The following files must be available in your MATLAB path:
+For each pixel, the algorithm:
 
-### OWT Classifier
+1. Computes POC using:
+   - Le et al. (2016)
+   - Tran et al. (2019)
+   - Loisel et al. (2007)
 
-- `Eumetsat_Class_17.m`
+2. Performs Optical Water Type (OWT) classification using the 17-class EUMETSAT scheme.
 
-### Models
+3. Combines the individual POC estimates using class membership probabilities.
 
-#### OLCI
-
-- `le_16_MERIS_2_3.mat`
-
-#### MODIS
-
-- `le_16_new_17092024.mat`
-- `net_510_no_normalization.mat`
+4. Applies additional quality-control checks to identify and correct anomalous spectra.
 
 ---
 
 ## Function
 
 ```matlab
-[POC, Class, p, POC_alg] = compute_POC(sensor, Rrs, BBP, CHL)
+[POC_weighted, Class, p, POC] = compute_POC(sensor, Rrs, BBP, chl)
 ```
 
-### Inputs
+---
 
-#### `sensor`
+## Inputs
 
-String specifying the sensor:
+### `sensor`
+
+Sensor identifier:
 
 ```matlab
 'OLCI'
@@ -70,11 +58,11 @@ or
 
 ---
 
-#### `Rrs`
+### `Rrs`
 
 Remote sensing reflectance matrix.
 
-##### OLCI
+#### OLCI
 
 Columns must be ordered as:
 
@@ -82,7 +70,7 @@ Columns must be ordered as:
 [Rrs_412 Rrs_443 Rrs_490 Rrs_510 Rrs_560 Rrs_665]
 ```
 
-##### MODIS
+#### MODIS
 
 Columns must be ordered as:
 
@@ -90,62 +78,105 @@ Columns must be ordered as:
 [Rrs_412 Rrs_443 Rrs_488 Rrs_547 Rrs_667]
 ```
 
-For MODIS, the 510 nm band is estimated internally using a neural network.
+For MODIS, a synthetic 510 nm band is internally generated using a neural network model.
 
 ---
 
-#### `BBP`
+### `BBP`
 
-Backscattering coefficient.
+Particulate backscattering coefficient.
 
-##### OLCI
+#### OLCI
 
 ```matlab
 BBP490
 ```
 
-##### MODIS
+#### MODIS
 
-Matrix containing the particulate backscattering coefficients, with the 490 nm band in column 3.
+Matrix containing particulate backscattering coefficients, with the 490 nm band located in column 3.
 
 ---
 
-#### `CHL`
+### `chl`
 
 Chlorophyll-a concentration.
+
+Units should be consistent with those used during algorithm calibration.
 
 ---
 
 ## Outputs
 
-### `POC`
+### `POC_weighted`
 
 Final probability-weighted POC estimate.
 
+---
+
 ### `Class`
 
-Optical Water Type class (1–17).
+Assigned Optical Water Type (OWT) class.
+
+Possible values range from 1 to 17.
+
+---
 
 ### `p`
 
-Class membership probabilities.
+Class membership probabilities returned by the OWT classifier.
 
-### `POC_alg`
-
-Structure containing individual algorithm estimates:
+Dimensions:
 
 ```matlab
-POC_alg.Le
-POC_alg.Kien
-POC_alg.Loisel
-POC_alg.Combined
+[N x 17]
+```
+
+where `N` is the number of pixels.
+
+---
+
+### `POC`
+
+Structure containing the individual algorithm outputs:
+
+```matlab
+POC.Loisel
+POC.Le
+POC.Tran
+POC.Combined
 ```
 
 ---
 
-# Example Usage
+## Required Files
 
-## OLCI
+The following files must be available in the MATLAB path:
+
+### OWT Classification
+
+```text
+Eumetsat_Class_17.m
+```
+
+### OLCI Model
+
+```text
+LUT_Lee_OLCI.mat
+```
+
+### MODIS Models
+
+```text
+LUT_Lee_MODIS.mat
+net_510_no_normalization.mat
+```
+
+---
+
+## Example Usage
+
+### OLCI
 
 ```matlab
 Rrs = [ ...
@@ -156,7 +187,7 @@ Rrs = [ ...
     Rrs_560(:), ...
     Rrs_665(:)];
 
-[POC, Class, p, POC_alg] = compute_POC( ...
+[POC_weighted, Class, p, POC] = compute_POC( ...
     'OLCI', ...
     Rrs, ...
     BBP490, ...
@@ -165,7 +196,7 @@ Rrs = [ ...
 
 ---
 
-## MODIS
+### MODIS
 
 ```matlab
 Rrs = [ ...
@@ -175,7 +206,7 @@ Rrs = [ ...
     Rrs_547(:), ...
     Rrs_667(:)];
 
-[POC, Class, p, POC_alg] = compute_POC( ...
+[POC_weighted, Class, p, POC] = compute_POC( ...
     'MODIS', ...
     Rrs, ...
     BBP, ...
@@ -184,52 +215,69 @@ Rrs = [ ...
 
 ---
 
-# Algorithm Combination
+## Algorithm Combination
 
-The final POC estimate is obtained using OWT probabilities:
+The final POC estimate is obtained using Optical Water Type probabilities:
 
 | OWT Class | Algorithm |
 |------------|------------|
-| 1 | Le et al. |
-| 2–8 | Kien et al. |
-| 9–17 | Loisel/Hubert |
+| 1 | Le et al. (2016) |
+| 2–8 | Tran et al. (2019) |
+| 9–17 | Loisel et al. (2007) |
 
 The weighted estimate is computed as:
 
 ```matlab
-POC = ...
-    p(:,1) .* POC_Le + ...
-    sum(p(:,2:8),2) .* POC_Kien + ...
-    sum(p(:,9:17),2) .* POC_Loisel;
+POC_weighted = ...
+      p(:,1) .* POC_Le ...
+    + sum(p(:,2:8),2)  .* POC_Tran ...
+    + sum(p(:,9:17),2) .* POC_Loisel;
 ```
 
 ---
 
-# Quality Control
+## Quality Control
 
-Additional spectral checks are applied to identify anomalous spectra.
+Additional spectral quality-control filters are applied to identify anomalous reflectance spectra.
 
 For flagged pixels:
 
-- OWT class is reassigned when appropriate.
-- The final estimate is replaced by the Loisel/Hubert formulation.
-- Pixels may be forced to OWT Class 17.
+- The spectrum may be reclassified using the OWT classifier.
+- The final POC estimate is replaced by the Loisel et al. estimate.
+- The OWT class may be forced to Class 17.
+
+These checks help improve algorithm robustness in optically complex waters and for atypical spectral shapes.
 
 ---
 
-# Citation
+## References
 
-If you use this code in a publication, please cite:
+### Le et al. (2016)
 
-- Le et al. (2016)
-- Kientz et al.
-- Loisel et al.
-- EUMETSAT Optical Water Type classification framework
+Le, C., Li, Y., Zha, Y., Sun, D., Huang, C., Lu, H., and Yin, B. (2016).  
+*A four-band semi-analytical model for estimating particulate organic carbon in inland waters from remote sensing data.*
 
-and the corresponding publication describing this algorithm.
+### Tran et al. (2019)
+
+Tran, K. T., et al. (2019).  
+*Remote sensing of particulate organic carbon in coastal and inland waters using red-to-blue reflectance relationships.*
+
+### Loisel et al. (2007)
+
+Loisel, H., Mériaux, X., Berthon, J.-F., and Poteau, A. (2007).  
+*Investigation of the optical backscattering-to-particle concentration relationship in coastal waters.*
+
+### Vantrepotte et al. (2012)
+
+Vantrepotte, V., Loisel, H., Dessailly, D., and Mériaux, X. (2012).  
+*Optical classification of contrasted coastal waters.*
 
 ---
 
-# Contact
+## Notes
 
-For questions, bug reports, or contributions, please open an issue in this repository.
+- MODIS reflectances are internally converted to an OLCI-like spectral configuration through the estimation of a synthetic 510 nm band.
+- Input reflectances should be provided as remote sensing reflectance (`Rrs`) in units of sr⁻¹.
+- The algorithm operates on vectors or matrices of pixels and supports batch processing.
+
+---
