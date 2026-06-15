@@ -2,7 +2,7 @@
 
 MATLAB implementation of a Particulate Organic Carbon (POC) retrieval algorithm based on the combination of three published approaches:
 
-- **Le et al. (2016)**
+- **Le et al. (2017)**
 - **Tran et al. (2019)**
 - **Loisel et al. (2007)**
 
