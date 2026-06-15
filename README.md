@@ -10,7 +10,7 @@ The algorithm uses the **EUMETSAT Optical Water Type (OWT)** classification sche
 
 Supported sensors:
 
-- Sentinel-3 OLCI
+- Sentinel-3 OLCI like sensors: exemple: OLCI, MERIS, SeaWIFS, PACE
 - MODIS-Aqua
 
 ---
